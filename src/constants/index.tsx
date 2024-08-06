@@ -1,11 +1,12 @@
 import {
-  ArrowClockwise,
-  ArrowCounterclockwise,
   Code,
   Highlighter,
   Justify,
   JustifyLeft,
   JustifyRight,
+  ListOl,
+  ListUl,
+  Quote,
   Subscript,
   Superscript,
   TextCenter,
@@ -17,27 +18,29 @@ import {
 
 export enum RichTextAction {
   Bold = "bold",
-  Italics = "italics",
+  Italics = "italic",
   Underline = "underline",
   Strikethrough = "strikethrough",
   Superscript = "superscript",
   Subscript = "subscript",
   Highlight = "highlight",
   Code = "code",
-  LeftAlign = "leftAlign",
-  CenterAlign = "centerAlign",
-  RightAlign = "rightAlign",
-  JustifyAlign = "justifyAlign",
+  LeftAlign = "left",
+  CenterAlign = "center",
+  RightAlign = "right",
+  JustifyAlign = "justify",
   Divider = "divider",
+  BlockQuote = "block-quote",
+  NumberedList = "numbered-list",
+  BulletedList = "bulleted-list",
   Undo = "undo",
   Redo = "redo",
 }
 
-export const RICH_TEXT_OPTIONS = [
+export const TEXT_FORMAT_OPTIONS = [
   { id: RichTextAction.Bold, icon: <TypeBold />, label: "Bold" },
   { id: RichTextAction.Italics, icon: <TypeItalic />, label: "Italics" },
   { id: RichTextAction.Underline, icon: <TypeUnderline />, label: "Underline" },
-  { id: RichTextAction.Divider },
   {
     id: RichTextAction.Highlight,
     icon: <Highlighter />,
@@ -64,7 +67,9 @@ export const RICH_TEXT_OPTIONS = [
     icon: <Code />,
     label: "Code",
   },
-  { id: RichTextAction.Divider },
+];
+
+export const TEXT_ALIGNMENT_OPTIONS = [
   {
     id: RichTextAction.LeftAlign,
     icon: <JustifyLeft />,
@@ -85,19 +90,24 @@ export const RICH_TEXT_OPTIONS = [
     icon: <Justify />,
     label: "Align Justify",
   },
-
-  { id: RichTextAction.Divider },
   {
-    id: RichTextAction.Undo,
-    icon: <ArrowCounterclockwise />,
-    label: "Undo",
+    id: RichTextAction.BlockQuote,
+    icon: <Quote />,
+    label: "Block Quote",
   },
   {
-    id: RichTextAction.Redo,
-    icon: <ArrowClockwise />,
-    label: "Redo",
+    id: RichTextAction.BulletedList,
+    icon: <ListUl />,
+    label: "Bulleted List",
+  },
+  {
+    id: RichTextAction.NumberedList,
+    icon: <ListOl />,
+    label: "Numbered List",
   },
 ];
 
-export const LOW_PRIORIRTY = 1;
 export const HEADINGS = ["h1", "h2", "h3", "h4", "h5", "h6"];
+
+export const LIST_TYPES = ["numbered-list", "bulleted-list"];
+export const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];

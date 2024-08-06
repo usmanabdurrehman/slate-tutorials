@@ -1,93 +1,213 @@
 import { Box } from "@chakra-ui/react";
-import React, { useMemo } from "react";
-import { LexicalComposer } from "@lexical/react/LexicalComposer";
-import { HeadingNode } from "@lexical/rich-text";
-import { CodeHighlightNode, CodeNode } from "@lexical/code";
-
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { css } from "@emotion/css";
-import { ToolbarPlugin } from "./Plugins";
-import { EditorThemeClasses } from "lexical";
-import CustomOnChangePlugin from "./Plugins/CustomOnChangePlugin";
+import React, { useState } from "react";
 
-const theme: EditorThemeClasses = {
-  text: {
-    bold: css({ fontWeight: "bold" }),
-    underline: css({ textDecoration: "underline" }),
-    strikethrough: css({ textDecoration: "line-through" }),
-    underlineStrikethrough: css({ textDecoration: "underline line-through" }),
-    italic: css({ fontStyle: "italic" }),
-    code: css({
-      color: "black",
-      padding: 2,
-      background: "#eee",
-      border: "1px solid #ccc",
-    }),
-  },
-};
+import { createEditor, Descendant } from "slate";
+import {
+  Editable,
+  RenderElementProps,
+  RenderLeafProps,
+  Slate,
+  withReact,
+} from "slate-react";
+import { withHistory } from "slate-history";
+import { CustomElement, CustomText, Editor } from "./types";
+import { toggleMark } from "./utils";
+import Toolbar from "./Components/Toolbar";
 
 interface RichTextEditorProps {
-  value: string;
-  onChange: (value: string) => void;
+  initialValue: Descendant[] | undefined;
+  onChange: (value: Descendant[]) => void;
   placeholder?: string;
   name: string;
 }
 
+declare module "slate" {
+  interface CustomTypes {
+    Editor: Editor;
+    Element: CustomElement;
+    Text: CustomText;
+  }
+}
+
+const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
+  if (leaf.superscript) {
+    children = <sup>{children}</sup>;
+  }
+
+  if (leaf.subscript) {
+    children = <sub>{children}</sub>;
+  }
+
+  return (
+    <span
+      {...attributes}
+      style={{
+        ...(leaf.bold && { fontWeight: "bold" }),
+        ...(leaf.code && {
+          color: "black",
+          padding: 2,
+          background: "#eee",
+          fontFamily: "monospace",
+          fontSize: 12,
+        }),
+        ...(leaf.italic && { fontStyle: "italic" }),
+        ...(leaf.underline && { textDecoration: "underline" }),
+        ...(leaf.strikethrough && { textDecoration: "line-through" }),
+        ...(leaf.highlight && {
+          color: "black",
+          padding: 2,
+          background: "#f3ff63",
+          border: "1px solid #c6c202",
+        }),
+      }}
+    >
+      {children}
+    </span>
+  );
+};
+
+const Element = ({ attributes, children, element }: RenderElementProps) => {
+  const style = { textAlign: element.align };
+  switch (element.type) {
+    case "block-quote":
+      return (
+        <blockquote
+          style={{
+            ...style,
+            borderLeft: " 2px solid #ddd",
+            marginLeft: "0",
+            marginRight: "0",
+            paddingLeft: "10px",
+            color: "#aaa",
+            fontStyle: "italic",
+          }}
+          {...attributes}
+        >
+          {children}
+        </blockquote>
+      );
+    case "bulleted-list":
+      return (
+        <ul style={style} {...attributes}>
+          {children}
+        </ul>
+      );
+    case "h1":
+      return (
+        <h1 style={style} {...attributes}>
+          {children}
+        </h1>
+      );
+    case "h2":
+      return (
+        <h2 style={style} {...attributes}>
+          {children}
+        </h2>
+      );
+    case "h3":
+      return (
+        <h3 style={style} {...attributes}>
+          {children}
+        </h3>
+      );
+
+    case "h4":
+      return (
+        <h4 style={style} {...attributes}>
+          {children}
+        </h4>
+      );
+    case "h5":
+      return (
+        <h5 style={style} {...attributes}>
+          {children}
+        </h5>
+      );
+    case "h6":
+      return (
+        <h6 style={style} {...attributes}>
+          {children}
+        </h6>
+      );
+    case "list-item":
+      return (
+        <li style={style} {...attributes}>
+          {children}
+        </li>
+      );
+    case "numbered-list":
+      return (
+        <ol style={style} {...attributes}>
+          {children}
+        </ol>
+      );
+    default:
+      return (
+        <p style={style} {...attributes}>
+          {children}
+        </p>
+      );
+  }
+};
+
+const RenderLeaf = (props: RenderLeafProps) => <Leaf {...props} />;
+const RenderElement = (props: RenderElementProps) => <Element {...props} />;
+
 export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(
-  function RichTextEditor({ value, onChange, placeholder, name }) {
-    const initialConfig = useMemo(
-      () => ({
-        namespace: name,
-        theme,
-        onError: () => {},
-        nodes: [HeadingNode, CodeHighlightNode, CodeNode],
-      }),
-      [name]
-    );
+  function RichTextEditor({ initialValue, onChange, placeholder, name }) {
+    if (!initialValue) return null;
+
+    const [editor] = useState(() => withReact(withHistory(createEditor())));
+
+    const onRichTextKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (
+      event
+    ) => {
+      const key = event?.key?.toLowerCase();
+      if (key === "b" && event?.ctrlKey) {
+        toggleMark(editor, "bold");
+      }
+      if (key === "i" && event?.ctrlKey) {
+        toggleMark(editor, "italic");
+      }
+      if (key === "u" && event?.ctrlKey) {
+        toggleMark(editor, "underline");
+      }
+      if (key === "z" && event?.ctrlKey) {
+        editor.undo();
+      }
+      if (key === "y" && event?.ctrlKey) {
+        editor.redo();
+      }
+    };
 
     return (
       <Box>
-        <LexicalComposer initialConfig={initialConfig}>
-          <ToolbarPlugin />
-          <Box pos="relative">
-            <RichTextPlugin
-              contentEditable={
-                <ContentEditable
-                  className={css({
-                    height: 120,
-                    fontSize: 12,
-                    padding: 8,
-                    overflow: "auto",
-                    outline: "none",
-                    border: "1px solid black",
-                    borderRadius: "4px",
-                  })}
-                />
-              }
-              placeholder={
-                <Box
-                  className={css({
-                    position: "absolute",
-                    color: "#999",
-                    top: 8,
-                    left: 10,
-                    fontSize: 12,
-                  })}
-                >
-                  {placeholder}
-                </Box>
-              }
-              ErrorBoundary={LexicalErrorBoundary}
+        <Slate
+          editor={editor}
+          initialValue={initialValue}
+          onChange={(value) => {
+            const isAstChange = editor.operations.some(
+              (op) => "set_selection" !== op.type
+            );
+            if (isAstChange) {
+              onChange(value);
+            }
+          }}
+        >
+          <Toolbar />
+          <Box border="1px solid black" borderRadius="6px" height={"400px"}>
+            <Editable
+              name={name}
+              placeholder={placeholder}
+              autoFocus
+              className={css({ padding: 8, fontSize: 18, height: "100%" })}
+              renderLeaf={RenderLeaf}
+              renderElement={RenderElement}
+              onKeyDown={onRichTextKeyDown}
             />
           </Box>
-          <AutoFocusPlugin />
-          <HistoryPlugin />
-          <CustomOnChangePlugin value={value} onChange={onChange} />
-        </LexicalComposer>
+        </Slate>
       </Box>
     );
   }

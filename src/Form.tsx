@@ -1,30 +1,39 @@
 import { Box, Button } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
+import { Descendant } from "slate";
 import { useData, useUpdateData } from "./api";
 import { RichTextEditor } from "./RichTextEditor";
 
+const initialValue = [
+  {
+    type: "paragraph",
+    children: [{ text: "A line of text in a paragraph." }],
+  },
+];
+
 export default function Form() {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState<Descendant[]>();
   const { mutateAsync: saveText, isPending } = useUpdateData();
-  const { data } = useData();
+  const { data, isSuccess } = useData();
 
   useEffect(() => {
-    setValue(data);
+    setValue(data || []);
   }, [data]);
 
   const onSave = () => {
-    saveText(value);
+    saveText(JSON.stringify(value));
   };
 
   return (
     <Box p={2}>
       <RichTextEditor
-        placeholder="Select Post"
+        placeholder="Enter Post"
         name="post"
-        value={value}
+        // initialValue={isSuccess ? data || [] : undefined}
+        initialValue={initialValue}
         onChange={(newValue) => setValue(newValue)}
       />
-      <Button colorScheme="whatsapp" size="xs" mt={2} onClick={onSave}>
+      <Button colorScheme="whatsapp" size="md" mt={2} onClick={onSave}>
         {isPending ? "Saving..." : "Save"}
       </Button>
     </Box>
