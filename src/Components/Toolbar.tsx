@@ -3,7 +3,7 @@ import { css } from "@emotion/css";
 import {
   HEADINGS,
   RichTextAction,
-  TEXT_ALIGNMENT_OPTIONS,
+  TEXT_BLOCK_OPTIONS,
   TEXT_FORMAT_OPTIONS,
 } from "../constants";
 import { Divider } from "./Divider";
@@ -81,7 +81,7 @@ export default function Toolbar({}: ToolbarProps) {
           />
         ))}
         <Divider />
-        {TEXT_ALIGNMENT_OPTIONS.map(({ id, label, icon }) => (
+        {TEXT_BLOCK_OPTIONS.map(({ id, label, icon }) => (
           <IconButton
             aria-label={label}
             icon={icon}

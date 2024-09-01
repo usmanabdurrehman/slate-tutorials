@@ -69,7 +69,7 @@ export const TEXT_FORMAT_OPTIONS = [
   },
 ];
 
-export const TEXT_ALIGNMENT_OPTIONS = [
+export const TEXT_BLOCK_OPTIONS = [
   {
     id: RichTextAction.LeftAlign,
     icon: <JustifyLeft />,
