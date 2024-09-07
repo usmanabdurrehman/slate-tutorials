@@ -75,9 +75,7 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
         <blockquote
           style={{
             ...style,
-            borderLeft: " 2px solid #ddd",
-            marginLeft: "0",
-            marginRight: "0",
+            borderLeft: "2px solid #ddd",
             paddingLeft: "10px",
             color: "#aaa",
             fontStyle: "italic",
@@ -86,12 +84,6 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
         >
           {children}
         </blockquote>
-      );
-    case "bulleted-list":
-      return (
-        <ul style={style} {...attributes}>
-          {children}
-        </ul>
       );
     case "h1":
       return (
@@ -135,6 +127,12 @@ const Element = ({ attributes, children, element }: RenderElementProps) => {
         <li style={style} {...attributes}>
           {children}
         </li>
+      );
+    case "bulleted-list":
+      return (
+        <ul style={style} {...attributes}>
+          {children}
+        </ul>
       );
     case "numbered-list":
       return (

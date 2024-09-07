@@ -24,6 +24,7 @@ export type CustomText = {
 export type Editor = BaseEditor & ReactEditor & HistoryEditor;
 export type MarkKey = keyof Omit<CustomText, "text">;
 export type ElementKey =
+  | AlignKey
   | "block-quote"
   | "bulleted-list"
   | "numbered-list"

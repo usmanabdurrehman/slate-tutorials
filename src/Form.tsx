@@ -7,7 +7,7 @@ import { RichTextEditor } from "./RichTextEditor";
 const initialValue = [
   {
     type: "paragraph",
-    children: [{ text: "A line of text in a paragraph." }],
+    children: [{ text: "" }],
   },
 ];
 
@@ -16,12 +16,8 @@ export default function Form() {
   const { mutateAsync: saveText, isPending } = useUpdateData();
   const { data, isSuccess } = useData();
 
-  useEffect(() => {
-    setValue(data || []);
-  }, [data]);
-
   const onSave = () => {
-    saveText(JSON.stringify(value));
+    saveText(value || data);
   };
 
   return (
@@ -29,8 +25,7 @@ export default function Form() {
       <RichTextEditor
         placeholder="Enter Post"
         name="post"
-        // initialValue={isSuccess ? data || [] : undefined}
-        initialValue={initialValue}
+        initialValue={isSuccess ? data || initialValue : undefined}
         onChange={(newValue) => setValue(newValue)}
       />
       <Button colorScheme="whatsapp" size="md" mt={2} onClick={onSave}>
