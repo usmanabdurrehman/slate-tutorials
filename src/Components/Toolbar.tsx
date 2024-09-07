@@ -1,15 +1,31 @@
 import { ButtonGroup, Flex, IconButton, Select } from "@chakra-ui/react";
 import { css } from "@emotion/css";
+import { useSlate } from "slate-react";
 import {
   HEADINGS,
+  RichTextAction,
   TEXT_BLOCK_OPTIONS,
   TEXT_FORMAT_OPTIONS,
 } from "../constants";
+import { MarkKey } from "../types";
+import { isMarkActive, toggleMark } from "../utils";
 import { Divider } from "./Divider";
 
 interface ToolbarProps {}
 
 export default function Toolbar({}: ToolbarProps) {
+  const editor = useSlate();
+
+  const onMarkClick = (id: RichTextAction) => {
+    toggleMark(editor, id as MarkKey);
+  };
+
+  const getMarkSelectionProps = (id: RichTextAction) => {
+    if (isMarkActive(editor, id as MarkKey))
+      return { colorScheme: "blue", variant: "solid" };
+    return {};
+  };
+
   return (
     <Flex gap={4}>
       <ButtonGroup
@@ -28,7 +44,13 @@ export default function Toolbar({}: ToolbarProps) {
           ))}
         </Select>
         {TEXT_FORMAT_OPTIONS.map(({ id, label, icon, fontSize }) => (
-          <IconButton aria-label={label} icon={icon} fontSize={fontSize} />
+          <IconButton
+            aria-label={label}
+            icon={icon}
+            fontSize={fontSize}
+            onMouseDown={() => onMarkClick(id)}
+            {...getMarkSelectionProps(id)}
+          />
         ))}
         <Divider />
         {TEXT_BLOCK_OPTIONS.map(({ id, label, icon }) => (
