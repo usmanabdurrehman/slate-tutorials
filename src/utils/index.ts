@@ -13,40 +13,41 @@ export const toggleMark = (editor: EditorType, format: MarkKey) => {
   else editor.addMark(format, true); // second param not documented. Just pass
 };
 
-export const isBlockActive = (
-  editor: EditorType,
-  format: ElementKey,
-  blockType: "type" | "align" = "type"
-) => {
+const isAlignFormat = (format: ElementKey) => TEXT_ALIGN_TYPES.includes(format);
+const isListFormat = (format: ElementKey) => LIST_TYPES.includes(format);
+
+export const isBlockActive = (editor: EditorType, format: ElementKey) => {
   const { selection } = editor;
   if (!selection) return false;
 
-  const [match] = Array.from(
+  const isAlign = isAlignFormat(format);
+  const blockType = isAlign ? "align" : "type";
+
+  const match = Array.from(
     Editor.nodes(editor, {
       at: Editor.unhangRange(editor, selection),
-      match: (node) =>
-        !Editor.isEditor(node) &&
-        Element.isElement(node) &&
-        node[blockType] === format,
+      match: (node) => {
+        return (
+          !Editor.isEditor(node) &&
+          Element.isElement(node) &&
+          node[blockType] === format
+        );
+      },
     })
   );
 
-  return !!match;
+  return !!match?.[0];
 };
-
-const isAlignFormat = (format: ElementKey) => TEXT_ALIGN_TYPES.includes(format);
-const isListFormat = (format: ElementKey) => LIST_TYPES.includes(format);
 
 export const toggleBlock = (editor: EditorType, format: ElementKey) => {
   const isAlign = isAlignFormat(format);
   const isList = isListFormat(format);
-  const isActive = isBlockActive(editor, format, isAlign ? "align" : "type");
+  const isActive = isBlockActive(editor, format);
 
-  let newProperties: Partial<Element> = {};
   let align: AlignKey | undefined;
   let type: string | undefined;
 
-  if (isAlignFormat(format)) {
+  if (isAlign) {
     align = isActive ? undefined : (format as AlignKey);
   } else {
     type = isActive ? "paragraph" : format;
@@ -67,6 +68,7 @@ export const toggleBlock = (editor: EditorType, format: ElementKey) => {
     Transforms.wrapNodes(editor, block);
   }
 
+  let newProperties: Partial<Element> = {};
   if (align) newProperties["align"] = align;
   if (type) newProperties["type"] = type;
 
