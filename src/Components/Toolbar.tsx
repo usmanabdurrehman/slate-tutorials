@@ -7,8 +7,8 @@ import {
   TEXT_BLOCK_OPTIONS,
   TEXT_FORMAT_OPTIONS,
 } from "../constants";
-import { MarkKey } from "../types";
-import { isMarkActive, toggleMark } from "../utils";
+import { ElementKey, MarkKey } from "../types";
+import { isBlockActive, isMarkActive, toggleBlock, toggleMark } from "../utils";
 import { Divider } from "./Divider";
 
 interface ToolbarProps {}
@@ -26,6 +26,16 @@ export default function Toolbar({}: ToolbarProps) {
     return {};
   };
 
+  const onBlockClick = (id: RichTextAction) => {
+    toggleBlock(editor, id as ElementKey);
+  };
+
+  const getBlockSelectionProps = (id: RichTextAction) => {
+    if (isBlockActive(editor, id as ElementKey))
+      return { colorScheme: "blue", variant: "solid" };
+    return {};
+  };
+
   return (
     <Flex gap={4}>
       <ButtonGroup
@@ -38,7 +48,14 @@ export default function Toolbar({}: ToolbarProps) {
           alignItems: "center",
         })}
       >
-        <Select size="md" mr={2} placeholder="paragraph" onChange={(e) => {}}>
+        <Select
+          size="md"
+          mr={2}
+          placeholder="paragraph"
+          onChange={(e) => {
+            toggleBlock(editor, e.target.value as ElementKey);
+          }}
+        >
           {HEADINGS.map((heading) => (
             <option value={heading}>{heading}</option>
           ))}
@@ -54,7 +71,12 @@ export default function Toolbar({}: ToolbarProps) {
         ))}
         <Divider />
         {TEXT_BLOCK_OPTIONS.map(({ id, label, icon }) => (
-          <IconButton aria-label={label} icon={icon} />
+          <IconButton
+            aria-label={label}
+            icon={icon}
+            onMouseDown={() => onBlockClick(id)}
+            {...getBlockSelectionProps(id)}
+          />
         ))}
       </ButtonGroup>
     </Flex>

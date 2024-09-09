@@ -14,7 +14,14 @@ export type CustomText = {
   highlight?: boolean;
   strikethrough?: boolean;
 };
-export type CustomElement = { type: string; children: CustomText[] };
+
+export type AlignKey = "left" | "right" | "center" | "justify";
+
+export type CustomElement = {
+  type: string;
+  children: CustomText[];
+  align?: AlignKey;
+};
 
 export type MarkKey =
   | "bold"
@@ -25,3 +32,10 @@ export type MarkKey =
   | "code"
   | "highlight"
   | "strikethrough";
+
+export type ElementKey =
+  | AlignKey
+  | "block-quote"
+  | "numbered-list"
+  | "bulleted-list"
+  | "list-item";

@@ -1,17 +1,26 @@
 import { Box } from "@chakra-ui/react";
 import { css } from "@emotion/css";
 import React, { useState } from "react";
-import { createEditor } from "slate";
+import { createEditor, Descendant } from "slate";
 import { withHistory } from "slate-history";
-import { Editable, RenderLeafProps, Slate, withReact } from "slate-react";
+import {
+  Editable,
+  RenderElementProps,
+  RenderLeafProps,
+  Slate,
+  withReact,
+} from "slate-react";
 
 import Toolbar from "./Components/Toolbar";
 import { CustomElement, CustomText, EditorType } from "./types";
 import { toggleMark } from "./utils";
 
-interface RichTextEditorProps {}
-
-const initalValue = [{ type: "paragraph", children: [{ text: "" }] }];
+interface RichTextEditorProps {
+  name: string;
+  placeholder: string;
+  initialValue: Descendant[] | undefined;
+  onChange: (value: Descendant[]) => void;
+}
 
 declare module "slate" {
   interface CustomTypes {
@@ -57,9 +66,108 @@ const RenderLeaf = ({ attributes, children, leaf }: RenderLeafProps) => {
   );
 };
 
+const RenderElement = ({
+  attributes,
+  children,
+  element,
+}: RenderElementProps) => {
+  const style = { textAlign: element.align };
+
+  switch (element.type) {
+    case "block-quote": {
+      return (
+        <blockquote
+          style={{
+            ...style,
+            borderLeft: "2px solid #ddd",
+            paddingLeft: 10,
+            color: "#aaa",
+            fontStyle: "italic",
+          }}
+          {...attributes}
+        >
+          {children}
+        </blockquote>
+      );
+    }
+    case "numbered-list": {
+      return (
+        <ol style={style} {...attributes}>
+          {children}
+        </ol>
+      );
+    }
+    case "bulleted-list": {
+      return (
+        <ul style={style} {...attributes}>
+          {children}
+        </ul>
+      );
+    }
+    case "list-item": {
+      return (
+        <li style={style} {...attributes}>
+          {children}
+        </li>
+      );
+    }
+    case "h1": {
+      return (
+        <h1 style={style} {...attributes}>
+          {children}
+        </h1>
+      );
+    }
+    case "h2": {
+      return (
+        <h2 style={style} {...attributes}>
+          {children}
+        </h2>
+      );
+    }
+    case "h3": {
+      return (
+        <h3 style={style} {...attributes}>
+          {children}
+        </h3>
+      );
+    }
+    case "h4": {
+      return (
+        <h4 style={style} {...attributes}>
+          {children}
+        </h4>
+      );
+    }
+    case "h5": {
+      return (
+        <h5 style={style} {...attributes}>
+          {children}
+        </h5>
+      );
+    }
+    case "h6": {
+      return (
+        <h6 style={style} {...attributes}>
+          {children}
+        </h6>
+      );
+    }
+    default: {
+      return (
+        <p style={style} {...attributes}>
+          {children}
+        </p>
+      );
+    }
+  }
+};
+
 export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(
-  function RichTextEditor({}) {
+  function RichTextEditor({ name, placeholder, onChange, initialValue }) {
     const [editor] = useState(withHistory(withReact(createEditor())));
+
+    if (!initialValue) return null;
 
     const onKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
       const key = event?.key?.toLowerCase();
@@ -84,16 +192,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(
       <Box>
         <Slate
           editor={editor}
-          initialValue={initalValue}
+          initialValue={initialValue}
           onChange={(value) => {
-            // console.log({ value });
+            onChange(value);
           }}
         >
           <Toolbar />
           <Box border="1px solid black" borderRadius="6px" height="400px">
             <Editable
-              name="post"
-              placeholder="Write post"
+              name={name}
+              placeholder={placeholder}
               autoFocus
               className={css({
                 padding: 8,
@@ -101,6 +209,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = React.memo(
                 height: "100%",
               })}
               renderLeaf={RenderLeaf}
+              renderElement={RenderElement}
               onKeyDown={onKeyDown}
             />
           </Box>
